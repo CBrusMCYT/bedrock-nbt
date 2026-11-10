@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BedrockNBT</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#13995c">
+<style>
+:root{--bg:#eef1ee;--card:#fff;--tx:#141a17;--mut:#68736d;--line:#dde3df;--ac:#13995c;--sel:#cfeedd;--bad:#d6393f;--sh:0 10px 34px rgba(10,40,25,.16);color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1311;--card:#181e1b;--tx:#e9efeb;--mut:#8a978f;--line:#26302b;--ac:#35d08a;--sel:#1d4a35;--bad:#ff6b70;--sh:0 10px 34px rgba(0,0,0,.55);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1311;--card:#181e1b;--tx:#e9efeb;--mut:#8a978f;--line:#26302b;--ac:#35d08a;--sel:#1d4a35;--bad:#ff6b70;--sh:0 10px 34px rgba(0,0,0,.55);color-scheme:dark}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#app{display:flex;flex-direction:column;height:100%}
+.top{display:flex;align-items:center;gap:6px;padding:10px 12px;background:var(--card);border-bottom:1px solid var(--line)}
+.ttl{flex:1;min-width:0}.ttl b{display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ttl small{color:var(--mut);font-size:12px}
+.btn{border:0;border-radius:10px;padding:9px 12px;background:var(--bg);color:var(--tx);font:inherit;font-weight:600;font-size:14px;cursor:pointer}
+.btn.pri{background:var(--ac);color:#fff}.btn.bad{color:var(--bad)}.btn:disabled{opacity:.35}
+#main{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--card)}
+.bar{display:flex;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);flex:none}
+.bar input{flex:1;min-width:0}.bar .btn{background:var(--bg);padding:8px 10px;font-size:13px}
+input,select,textarea{width:100%;box-sizing:border-box;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--tx);font:inherit}
+textarea{font-family:ui-monospace,Menlo,monospace;font-size:13px}
+.tree{flex:1;overflow:auto;padding:4px 0 10px;font:13.5px/1.3 ui-monospace,Menlo,Consolas,monospace;-webkit-tap-highlight-color:transparent}
+.tr{display:flex;align-items:center;gap:6px;min-height:38px;padding-right:14px;cursor:pointer;white-space:nowrap;width:max-content;min-width:100%;box-sizing:border-box}
+.tr.sel{background:var(--sel)}
+.ar{width:18px;text-align:center;color:var(--mut);flex:none}
+.ti{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;color:#fff;font:700 10px/1 ui-monospace,Menlo,monospace;flex:none}
+.tn{font-weight:700}.tv{color:var(--mut)}.tr.sel .tv{color:var(--tx)}
+.tr.more{color:var(--ac);font-weight:700}
+.empty{margin:auto;padding:28px;max-width:340px;text-align:center;font-family:system-ui,sans-serif}
+.empty h2{margin:0 0 8px;font-size:22px}.empty p{color:var(--mut);margin:0 0 18px}
+.empty .btn{padding:14px 22px;font-size:16px}
+.st{padding:7px 12px;font:12px ui-monospace,Menlo,monospace;color:var(--mut);border-top:1px solid var(--line);background:var(--card);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb{display:flex;gap:6px;padding:8px 10px;background:var(--card);border-top:1px solid var(--line)}
+.tb .btn{flex:1;padding:11px 4px}
+.st[hidden],.tb[hidden],#sheet[hidden]{display:none}
+#sheet{position:fixed;inset:0;z-index:20;display:flex;align-items:flex-end}
+.bk{position:absolute;inset:0;background:rgba(0,0,0,.5)}
+.pn{position:relative;width:100%;max-height:88%;overflow:auto;background:var(--card);border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:var(--sh)}
+.pn h3{margin:0 0 12px;font-size:18px}.pn label{display:block;margin:10px 0 4px;color:var(--mut);font-size:13px}.pn p{margin:0;color:var(--mut)}
+.ac{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.pn details{margin-top:10px;border:1px solid var(--line);border-radius:12px;padding:8px 10px}.pn summary{font-weight:700;cursor:pointer}.pn .hint{color:var(--mut)}
+.inv{border-color:var(--bad)!important;color:var(--bad)!important}
+.err{color:var(--bad);font-size:13px;margin-top:4px}.err:empty{display:none}
+.pn .hint{font-size:13px;margin-top:6px}.pn .guide{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:6px}
+.pn .pre{color:var(--ac);font:600 13px ui-monospace,Menlo,monospace;margin-top:10px;word-break:break-all}
+#toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:12px;max-width:88%;opacity:0;pointer-events:none;transition:opacity .2s;z-index:30;text-align:center}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="top">
+    <div class="ttl"><b id="fn">BedrockNBT</b><small id="fi">Editor tag Minecraft</small></div>
+    <button class="btn" id="open">Buka</button>
+    <button class="btn" id="undo">Urungkan</button>
+    <button class="btn pri" id="save">Simpan</button>
+  </div>
+  <div id="main"></div>
+  <div class="st" id="st" hidden></div>
+  <div class="tb" id="tb" hidden>
+    <button class="btn" id="b-edit">Edit</button>
+    <button class="btn" id="b-add">Tambah</button>
+    <button class="btn" id="b-item">Item+</button>
+    <button class="btn" id="b-dup">Duplikat</button>
+    <button class="btn bad" id="b-del">Hapus</button>
+  </div>
+</div>
+<div id="sheet" hidden></div>
+<div id="toast"></div>
+<input type="file" id="file" hidden>
+<input type="file" id="sfile" hidden>
+<script>
+const T={1:'Byte',2:'Short',3:'Int',4:'Long',5:'Float',6:'Double',7:'Byte Array',8:'String',9:'List',10:'Compound',11:'Int Array',12:'Long Array'};
+const IT={1:'B',2:'S',3:'I',4:'L',5:'F',6:'D',7:'b',8:'"',9:'[]',10:'{}',11:'i',12:'l'};
+const CL={1:'#c98a1e',2:'#b8741c',3:'#2b8bd6',4:'#6d55d6',5:'#1f9d78',6:'#16867f',7:'#6b7a72',8:'#d4527f',9:'#a55fd6',10:'#c9a21a',11:'#6b7a72',12:'#6b7a72'};
+const ET={7:1,11:3,12:4};
+const S={root:null,sel:null,open:new Set(),lim:{},le:false,comp:'none',hdr:null,fname:'',undo:[],q:'',orig:null};
+const $=s=>document.querySelector(s);
+const isA=t=>t==7||t==11||t==12, isC=t=>t==9||t==10;
+const h=(t,a={},...k)=>{const e=document.createElement(t);for(const x in a){if(x=='class')e.className=a[x];else if(x.startsWith('on')||x=='value'||x=='hidden')e[x]=a[x];else e.setAttribute(x,a[x])}k.flat().forEach(c=>{if(c!=null&&c!==false)e.append(c)});return e};
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2800)}
+
+/* ---------- parser & writer ---------- */
+function parse(buf,le){
+  const dv=new DataView(buf.buffer,buf.byteOffset,buf.byteLength),td=new TextDecoder();let p=0;
+  const need=n=>{if(p+n>buf.length)throw Error('Data terpotong')};
+  const rd={1:()=>{need(1);return dv.getInt8(p++)},
+    2:()=>{need(2);const v=dv.getInt16(p,le);p+=2;return v},
+    3:()=>{need(4);const v=dv.getInt32(p,le);p+=4;return v},
+    4:()=>{need(8);const v=dv.getBigInt64(p,le);p+=8;return v},
+    5:()=>{need(4);const v=dv.getFloat32(p,le);p+=4;return v},
+    6:()=>{need(8);const v=dv.getFloat64(p,le);p+=8;return v}};
+  const str=()=>{need(2);const l=dv.getUint16(p,le);p+=2;need(l);const s=td.decode(buf.subarray(p,p+l));p+=l;return s};
+  const cnt=()=>{const n=rd[3]();if(n<0)throw Error('Panjang tidak valid');return n};
+  const arr=f=>{const n=cnt(),a=[];for(let i=0;i<n;i++)a.push(f());return a};
+  function node(t){
+    if(t<=6)return{t,v:rd[t]()};
+    if(t==7)return{t,v:arr(rd[1])};
+    if(t==8)return{t,v:str()};
+    if(t==9){const lt=rd[1](),n=cnt();if(n>0&&(lt<1||lt>12))throw Error('Tipe list tidak dikenal');const v=[];for(let i=0;i<n;i++)v.push(node(lt));return{t,lt,v}}
+    if(t==10){const v=[];for(;;){need(1);const ct=dv.getUint8(p++);if(ct==0)break;if(ct>12)throw Error('Tag tidak dikenal');const n=str(),c=node(ct);c.n=n;v.push(c)}return{t,v}}
+    if(t==11)return{t,v:arr(rd[3])};
+    if(t==12)return{t,v:arr(rd[4])};
+    throw Error('Tag tidak dikenal')}
+  need(1);if(dv.getUint8(p++)!=10)throw Error('Root bukan Compound');
+  const n=str(),r=node(10);r.n=n;return{root:r,end:p}}
+function write(root,le){
+  let a=new Uint8Array(1024),dv=new DataView(a.buffer),p=0;const te=new TextEncoder();
+  const g=n=>{if(p+n>a.length){const b=new Uint8Array(Math.max(a.length*2,p+n));b.set(a);a=b;dv=new DataView(a.buffer)}};
+  const W={1:x=>{g(1);dv.setInt8(p++,x)},2:x=>{g(2);dv.setInt16(p,x,le);p+=2},3:x=>{g(4);dv.setInt32(p,x,le);p+=4},
+    4:x=>{g(8);dv.setBigInt64(p,x,le);p+=8},5:x=>{g(4);dv.setFloat32(p,x,le);p+=4},6:x=>{g(8);dv.setFloat64(p,x,le);p+=8}};
+  const ws=s=>{const e=te.encode(s);g(2+e.length);dv.setUint16(p,e.length,le);p+=2;a.set(e,p);p+=e.length};
+  function wn(n){const t=n.t;
+    if(t<=6)W[t](n.v);
+    else if(t==7){W[3](n.v.length);n.v.forEach(x=>W[1](x))}
+    else if(t==8)ws(n.v);
+    else if(t==9){W[1](n.v.length?n.lt:0);W[3](n.v.length);n.v.forEach(wn)}
+    else if(t==10){n.v.forEach(c=>{g(1);dv.setUint8(p++,c.t);ws(c.n);wn(c)});g(1);dv.setUint8(p++,0)}
+    else if(t==11){W[3](n.v.length);n.v.forEach(x=>W[3](x))}
+    else{W[3](n.v.length);n.v.forEach(x=>W[4](x))}}
+  g(1);dv.setUint8(p++,10);ws(root.n);wn(root);return a.slice(0,p)}
+const dec=async(u,f)=>new Uint8Array(await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream(f))).arrayBuffer());
+const enc=async(u,f)=>new Uint8Array(await new Response(new Blob([u]).stream().pipeThrough(new CompressionStream(f))).arrayBuffer());
+
+/* ---------- file ---------- */
+async function openFile(f){
+  try{
+    const sg=new Uint8Array(await f.slice(0,2).arrayBuffer());if(sg[0]==0x50&&sg[1]==0x4b)return openWorld(f);
+    const raw=new Uint8Array(await f.arrayBuffer());let u=raw,comp='none',hdr=null,off=0;
+    if(u[0]==0x50&&u[1]==0x4b)throw Error('Ini file zip (.mcworld). Dukungan world menyusul di tahap berikutnya');
+    if(u[0]==0x1f&&u[1]==0x8b){u=await dec(u,'gzip');comp='gzip'}
+    else if(u[0]==0x78&&[1,0x5e,0x9c,0xda].includes(u[1])){u=await dec(u,'deflate');comp='deflate'}
+    if(u.length>9){const d=new DataView(u.buffer,u.byteOffset);if(u[8]==10&&d.getUint32(4,true)==u.length-8&&d.getUint32(0,true)<64){hdr=d.getUint32(0,true);off=8}}
+    const b=u.subarray(off);let r=null,le=false;
+    for(const l of off?[true]:[false,true]){try{const x=parse(b,l);if(x.end==b.length){r=x;le=l;break}}catch(e){}}
+    if(!r)throw Error('Format NBT tidak dikenali atau file rusak. File tidak diubah.');
+    Object.assign(S,{w:null,wk:null,multi:false,root:r.root,sel:[],open:new Set(['']),lim:{},le,comp,hdr,fname:f.name,undo:[],q:'',orig:raw});render();
+  }catch(e){toast(e.message)}}
+async function dl(u,name){
+  const ok='gif png jpg jpeg webp mp4 webm mov txt json md docx pptx epub csv ttf html svg pdf xlsx zip fig'.split(' ');
+  const ext=((name.match(/\.([^.]+)$/)||[])[1]||'').toLowerCase();let data=u,fn=name,msg='';
+  const d=window.claude?await claude.use('downloads').catch(()=>null):null;
+  if(!d){const a=h('a',{href:URL.createObjectURL(new Blob([u])),download:name});document.body.append(a);a.click();a.remove();return toast('Tersimpan ke unduhan: '+name)}
+  if(!ok.includes(ext)){
+    if(ext=='mcworld'){fn=name+'.zip';msg=' Hapus akhiran .zip dari namanya supaya jadi .mcworld, lalu buka di Minecraft.'}
+    else{data=zipBuild(new Blob([]),{co:0,cd:new Uint8Array(0),ents:[]},[{name,data:u instanceof Blob?new Uint8Array(await u.arrayBuffer()):u}],new Set());fn=name+'.zip';msg=' Ekstrak zip ini untuk mendapatkan file '+name+'.'}}
+  try{await d.save({filename:fn,data});toast('Tersimpan: '+fn+'.'+msg)}
+  catch(e){toast(e&&e.code=='declined'?'Penyimpanan dibatalkan':'Gagal menyimpan: '+((e&&e.message)||'tidak tersedia'))}}
+async function save(){
+  try{let u=write(S.root,S.le);
+    if(S.hdr!=null){const o=new Uint8Array(8+u.length),d=new DataView(o.buffer);d.setUint32(0,S.hdr,true);d.setUint32(4,u.length,true);o.set(u,8);u=o}
+    if(S.comp!='none')u=await enc(u,S.comp);
+    await dl(u,S.fname);
+  }catch(e){toast(e.message)}}
+
+
+/* ---------- state ---------- */
+function at(sel){let n=S.root,p=null;for(const i of sel){if(!isC(n.t)||!n.v[i])return null;p=n;n=n.v[i]}return{n,p,i:sel[sel.length-1]}}
+function mut(fn){S.undo.push({r:structuredClone(S.root),sel:S.sel&&[...S.sel]});if(S.undo.length>20)S.undo.shift();fn();render()}
+function undo(){const s=S.undo.pop();if(!s)return;S.root=s.r;S.sel=s.sel;render()}
+const fmt=c=>isA(c.t)?c.v.join(', '):String(c.v);
+function conv(t,s){
+  if(t==8)return s;
+  if(isA(t))return s.split(/[\s,]+/).filter(Boolean).map(y=>conv(ET[t],y));
+  s=s.trim();if(s==='')s='0';
+  if(t<=4){if(!/^[+-]?\d+$/.test(s))throw Error('Harus bilangan bulat');const b=BigInt(s),m=1n<<BigInt([0,8,16,32,64][t]-1);if(b<-m||b>=m)throw Error('Di luar rentang '+T[t]);return t==4?b:Number(b)}
+  const x=Number(s);if(isNaN(x))throw Error('Harus berupa angka');return t==5?Math.fround(x):x}
+const tv=n=>isC(n.t)?'('+n.v.length+')':isA(n.t)?': ['+n.v.length+' elemen]':n.t==8?': "'+n.v.slice(0,80)+'"':n.t==4?': '+n.v+'L':': '+n.v;
+
+/* ---------- tree ---------- */
+function hits(n,name,q){
+  if(name.toLowerCase().includes(q))return true;
+  if(isC(n.t))return n.v.some((c,i)=>hits(c,n.t==9?'#'+i:c.n,q));
+  return !isA(n.t)&&String(n.v).toLowerCase().includes(q)}
+function tree(){
+  const t=$('#tree');t.replaceChildren();const q=S.q.toLowerCase();
+  const walk=(n,name,sel,d)=>{
+    const key=sel.join('.');if(q&&!hits(n,name,q))return;
+    const open=isC(n.t)&&(q?true:S.open.has(key));
+    t.append(h('div',{class:'tr'+(S.sel&&S.sel.join('.')==key?' sel':''),style:'padding-left:'+(6+d*18)+'px',onclick:()=>tap(n,sel,key)},
+      h('span',{class:'ar'},isC(n.t)?(open?'\u25be':'\u25b8'):''),
+      h('span',{class:'ti',style:'background:'+CL[n.t]},IT[n.t]),
+      h('span',{class:'tn'},name),h('span',{class:'tv'},tv(n))));
+    if(!open)return;
+    const lim=S.lim[key]||200;let shown=0;
+    for(let i=0;i<n.v.length;i++){
+      const c=n.v[i],cn=n.t==9?'#'+i:c.n;if(q&&!hits(c,cn,q))continue;
+      if(shown>=lim){t.append(h('div',{class:'tr more',style:'padding-left:'+(6+(d+1)*18)+'px',onclick:()=>{S.lim[key]=lim+500;tree()}},'... tampilkan lebih banyak ('+(n.v.length-i)+' lagi)'));break}
+      shown++;walk(c,cn,[...sel,i],d+1)}};
+  walk(S.root,S.root.n||'root',[],0)}
+function tap(n,sel,key){
+  const was=S.sel&&S.sel.join('.')==key;S.sel=sel;
+  if(isC(n.t)){if(S.open.has(key))S.open.delete(key);else S.open.add(key)}
+  else if(was){tree();status();return editSel()}
+  tree();status()}
+function status(){
+  const st=$('#st'),a=S.sel&&at(S.sel),ids=['edit','add','item','dup','del'];
+  if(!a){S.sel=null;st.textContent='Tidak ada tag dipilih';ids.forEach(k=>$('#b-'+k).disabled=true);return}
+  let n=S.root;const names=[S.root.n||'root'];
+  for(const i of S.sel){const p=n;n=n.v[i];names.push(p.t==9?'#'+i:n.n)}
+  st.textContent=names.join(' > ')+'  |  '+T[a.n.t];
+  const root=!a.p;
+  $('#b-edit').disabled=root||(isC(a.n.t)&&a.p.t!=10);
+  $('#b-add').disabled=!isC(a.n.t);$('#b-item').disabled=!(a.n.t==9&&(!a.n.v.length||a.n.lt==10));$('#b-dup').disabled=root;$('#b-del').disabled=root}
+function openAll(n,sel,c){const k=sel.join('.');if(!isC(n.t)||c.n>4000)return;c.n++;S.open.add(k);n.v.forEach((x,i)=>openAll(x,[...sel,i],c))}
+function render(){
+  const ok=!!S.root;
+  $('#fn').textContent=ok?S.fname:'BedrockNBT';
+  $('#fi').textContent=ok?(S.le?'Little-endian (Bedrock)':'Big-endian (Java)')+', '+(S.comp=='none'?'tanpa kompresi':S.comp):'Editor tag Minecraft';
+  $('#undo').disabled=!S.undo.length;$('#save').disabled=!(ok||S.w);$('#save').textContent=S.w?(ok?'Terapkan':'Ekspor'):'Simpan';if(S.w&&!ok){$('#fn').textContent=S.w.file.name;$('#fi').textContent='World Bedrock, '+S.w.n+' key NBT, '+(S.w.pending.size+S.w.pf.size)+' diubah'}$('#st').hidden=$('#tb').hidden=!ok;
+  const m=$('#main');m.replaceChildren();
+  if(S.w&&!ok){renderWorld(m);return}
+  if(!ok){m.append(h('div',{class:'empty'},h('h2',{},'Buka file NBT'),
+    h('p',{},'Mendukung level.dat, playerdata (.dat), .nbt, dan .mcstructure. Java dan Bedrock terdeteksi otomatis, kompresi gzip dan zlib ditangani sendiri.'),
+    h('button',{class:'btn pri',onclick:()=>$('#file').click()},'Pilih file'),
+    h('p',{style:'margin-top:18px;font-size:13px'},'File .mcworld (world Bedrock) juga bisa dibuka. Region .mca Java menyusul.')));return}
+  m.append(h('div',{class:'bar'},
+    S.wk?h('button',{class:'btn',onclick:back},'Kembali'):null,
+    h('input',{placeholder:'Cari nama atau nilai tag',value:S.q,oninput:e=>{S.q=e.target.value;tree()}}),
+    h('button',{class:'btn',onclick:()=>{openAll(S.root,[],{n:0});tree()}},'Buka semua'),
+    h('button',{class:'btn',onclick:()=>{S.open=new Set(['']);tree()}},'Tutup'),
+    S.wk?null:h('button',{class:'btn',onclick:()=>dl(S.orig,S.fname+'.bak')},'Cadangan')),
+    h('div',{class:'tree',id:'tree'}));
+  tree();status()}
+
+/* ---------- aksi ---------- */
+function sheet(title,body,acts){const s=$('#sheet');s.replaceChildren(h('div',{class:'bk',onclick:close}),h('div',{class:'pn'},h('h3',{},title),body,h('div',{class:'ac'},acts)));s.hidden=false}
+function close(){$('#sheet').hidden=true}
+const bt=(l,c,f)=>h('button',{class:'btn '+c,onclick:f},l);
+function editSel(){const a=S.sel&&at(S.sel);if(a&&a.p&&!(isC(a.n.t)&&a.p.t!=10))editSheet(a.p,a.i)}
+function editSheet(par,i){
+  const c=par.v[i],byName=par.t==10;
+  const nm=byName?h('input',{value:c.n}):null;
+  const vl=isC(c.t)?null:(c.t==8||isA(c.t))?h('textarea',{rows:c.t==8?4:6,value:fmt(c)}):h('input',{value:fmt(c),inputmode:c.t>4?'decimal':'numeric'});
+  const ne=h('div',{class:'err'}),ve=h('div',{class:'err'});
+  const run=()=>{let en='',ev='';
+    if(nm){const n=nm.value;if(!n)en='Nama tidak boleh kosong';else if(par.v.some((x,j)=>j!=i&&x.n===n))en='Nama sudah dipakai'}
+    if(vl){try{conv(c.t,vl.value)}catch(e){ev=e.message}}
+    if(nm){nm.classList.toggle('inv',!!en);ne.textContent=en}
+    if(vl){vl.classList.toggle('inv',!!ev);ve.textContent=ev}
+    return !en&&!ev};
+  if(nm)nm.oninput=run;if(vl)vl.oninput=run;
+  sheet((isC(c.t)?'Ubah nama ':'Edit ')+T[c.t],h('div',{},h('div',{class:'guide'},'Lokasi: '+pathOf(S.sel)+'. '+HINT[c.t]),byName?h('label',{},'Nama tag'):null,nm,nm?ne:null,vl?h('label',{},'Nilai'+(isA(c.t)?' (pisahkan dengan koma)':'')):null,vl,vl?ve:null),[
+    bt('Batal','',close),
+    bt('Simpan','pri',()=>{
+      if(!run())return toast('Ada isian yang salah, cek tulisan merah');
+      mut(()=>{if(vl)c.v=conv(c.t,vl.value);if(nm)c.n=nm.value});close()})])}
+function addSel(){const a=S.sel&&at(S.sel);if(a&&isC(a.n.t))addSheet(a.n)}
+const HINT={1:'Byte: bilangan bulat -128 sampai 127. Boolean pakai 0 atau 1.',2:'Short: bilangan bulat -32768 sampai 32767.',3:'Int: bilangan bulat 32-bit, contoh 20.',4:'Long: bilangan bulat 64-bit, contoh 1234567890123.',5:'Float: angka desimal, contoh 1.5.',6:'Double: angka desimal, contoh 64.25.',7:'Byte Array: daftar angka dipisah koma, contoh 1, 2, 3.',8:'String: teks bebas.',9:'List: folder berisi item bertipe sama. Dibuat kosong, isi lewat Tambah.',10:'Compound: folder berisi tag bernama. Dibuat kosong, isi lewat Tambah.',11:'Int Array: daftar bilangan bulat dipisah koma.',12:'Long Array: daftar bilangan bulat 64-bit dipisah koma.'};
+function pathOf(sel){let n=S.root;const a=[S.root.n||'root'];for(const i of sel){const p=n;n=n.v[i];a.push(p.t==9?'#'+i:n.n)}return a.join(' > ')}
+function addSheet(par){
+  const isL=par.t==9,locked=isL&&par.v.length>0,where=pathOf(S.sel);
+  const ts=h('select',{},[1,2,3,4,5,6,7,8,9,10,11,12].map(t=>h('option',{value:t},T[t])));
+  ts.value=locked?par.lt:8;ts.disabled=locked;
+  const nm=isL?null:h('input',{placeholder:'contoh: Health'});
+  const vl=h('textarea',{rows:3,placeholder:'contoh: 20'});
+  const ne=h('div',{class:'err'}),ve=h('div',{class:'err'}),hint=h('p',{class:'hint'}),pre=h('p',{class:'pre'});
+  const vr=h('div',{},h('label',{},'Nilai'),vl,ve);
+  const guide=isL?(locked?'Folder ini List bertipe '+T[par.lt]+'. Semua item harus bertipe '+T[par.lt]+', jadi tipe dikunci. Untuk tipe lain, tambahkan di dalam Compound.':'List masih kosong. Tipe pertama yang dipilih jadi tipe semua item di List ini.'):'Folder ini Compound: tiap tag punya nama dan tipe bebas. Contoh: tipe Int, nama Health, nilai 20.';
+  let touched=false;
+  const run=()=>{const t=+ts.value;let en='',ev='';
+    if(nm){const n=nm.value;if(!n)en='Nama tidak boleh kosong';else if(par.v.some(x=>x.n===n))en='Nama sudah dipakai'}
+    if(!isC(t)){try{conv(t,vl.value)}catch(e){ev=e.message}}
+    if(touched){if(nm){nm.classList.toggle('inv',!!en);ne.textContent=en}vl.classList.toggle('inv',!!ev);ve.textContent=ev}
+    vr.hidden=isC(t);hint.textContent=HINT[t];
+    pre.textContent='Hasil: '+(nm?(nm.value||'(nama)'):'#'+par.v.length)+' ('+T[t]+')'+(isC(t)?' kosong':' = '+(vl.value||'0'))+' di '+where;
+    return !en&&!ev};
+  ts.onchange=run;if(nm)nm.oninput=()=>{touched=true;run()};vl.oninput=()=>{touched=true;run()};
+  sheet('Tambah tag',h('div',{},h('div',{class:'guide'},guide),h('label',{},'Tipe'),ts,hint,nm?h('label',{},'Nama tag'):null,nm,nm?ne:null,vr,pre),[
+    bt('Batal','',close),
+    bt('Tambah','pri',()=>{touched=true;if(!run())return toast('Ada isian yang salah, cek tulisan merah');
+      const t=+ts.value,node={t,v:isC(t)?[]:conv(t,vl.value)};if(t==9)node.lt=0;if(nm)node.n=nm.value;
+      mut(()=>{par.v.push(node);if(isL&&!locked)par.lt=t;S.open.add(S.sel.join('.'))});close()})]);run()}
+function dupSel(){
+  const a=S.sel&&at(S.sel);if(!a||!a.p)return;
+  mut(()=>{const c=structuredClone(a.n);
+    if(a.p.t==10){let k=c.n+'_copy',x=2;while(a.p.v.some(y=>y.n===k))k=c.n+'_copy'+x++;c.n=k}
+    a.p.v.splice(a.i+1,0,c);S.sel=[...S.sel.slice(0,-1),a.i+1]})}
+function delSel(){
+  const a=S.sel&&at(S.sel);if(!a||!a.p)return;
+  sheet('Hapus tag?',h('p',{},'Tag "'+(a.p.t==9?'#'+a.i:a.n.n)+'" ('+T[a.n.t]+') akan dihapus. Bisa diurungkan.'),[
+    bt('Batal','',close),
+    bt('Hapus','bad',()=>{mut(()=>{a.p.v.splice(a.i,1);S.sel=S.sel.slice(0,-1)});close()})])}
+
+
+/* ---------- world Bedrock (LevelDB) ---------- */
+const mkT=p=>{const t=new Uint32Array(256);for(let i=0;i<256;i++){let c=i;for(let k=0;k<8;k++)c=c&1?(c>>>1)^p:c>>>1;t[i]=c>>>0}return t};
+const T32=mkT(0xEDB88320),T32C=mkT(0x82F63B78);
+const crc=(t,b,c=0xFFFFFFFF)=>{for(let i=0;i<b.length;i++)c=t[(c^b[i])&255]^(c>>>8);return c>>>0};
+const crcF=(t,b)=>(crc(t,b)^0xFFFFFFFF)>>>0;
+const cat=a=>{const o=new Uint8Array(a.reduce((s,x)=>s+x.length,0));let p=0;a.forEach(x=>{o.set(x,p);p+=x.length});return o};
+const hex=k=>Array.from(k,b=>b.toString(16).padStart(2,'0')).join('');
+function vr(b,p){let r=0,s=0,x;do{x=b[p.i++];r+=(x&127)*2**s;s+=7}while(x&128);return r}
+const vi=n=>{const a=[];while(n>=128){a.push(n%128|128);n=Math.floor(n/128)}a.push(n);return a};
+function snap(b){const p={i:0},n=vr(b,p),o=new Uint8Array(n);let q=0;
+  while(p.i<b.length){const t=b[p.i++],k=t&3;
+    if(k==0){let l=t>>2;if(l>=60){const c=l-59;l=0;for(let j=0;j<c;j++)l|=b[p.i++]<<(8*j)}l++;o.set(b.subarray(p.i,p.i+l),q);p.i+=l;q+=l}
+    else{let l,f;
+      if(k==1){l=((t>>2)&7)+4;f=((t>>5)<<8)|b[p.i++]}
+      else if(k==2){l=(t>>2)+1;f=b[p.i]|(b[p.i+1]<<8);p.i+=2}
+      else{l=(t>>2)+1;f=b[p.i]|(b[p.i+1]<<8)|(b[p.i+2]<<16)|(b[p.i+3]<<24);p.i+=4}
+      for(let j=0;j<l;j++,q++)o[q]=o[q-f]}}
+  return o}
+async function blk(u,o,s){const ty=u[o+s],r=u.subarray(o,o+s);
+  if(ty==0)return r;if(ty==1)return snap(r);if(ty==2)return dec(r,'deflate');if(ty==4)return dec(r,'deflate-raw');
+  throw Error('Kompresi LevelDB tidak dikenal')}
+function* ent(b){
+  const nr=new DataView(b.buffer,b.byteOffset,b.length).getUint32(b.length-4,true),end=b.length-4-nr*4,p={i:0};let key=new Uint8Array(0);
+  while(p.i<end){const sh=vr(b,p),ns=vr(b,p),vl=vr(b,p),k=new Uint8Array(sh+ns);
+    k.set(key.subarray(0,sh));k.set(b.subarray(p.i,p.i+ns),sh);p.i+=ns;key=k;yield[k,b.subarray(p.i,p.i+vl)];p.i+=vl}}
+async function readTable(u,put){
+  const p={i:u.length-48};vr(u,p);vr(u,p);const io=vr(u,p),is=vr(u,p),idx=await blk(u,io,is);
+  for(const[,hv]of ent(idx)){
+    const q={i:0},o=vr(hv,q),s=vr(hv,q);
+    for(const[k,v]of ent(await blk(u,o,s))){const n=k.length;if(n<8)continue;let seq=0;for(let j=6;j>=0;j--)seq=seq*256+k[n-7+j];put(k.subarray(0,n-8),seq,k[n-8],v)}}}
+function readLog(b,put){
+  const recs=[];let p=0,cur=[];
+  while(p+7<=b.length){
+    const left=32768-p%32768;if(left<7){p+=left;continue}
+    const l=b[p+4]|(b[p+5]<<8),ty=b[p+6];p+=7;
+    if(ty==0||p+l>b.length){p+=left-7;continue}
+    const d=b.subarray(p,p+l);p+=l;
+    if(ty==1)recs.push(d);else if(ty==2)cur=[d];else{cur.push(d);if(ty==4)recs.push(cat(cur))}}
+  for(const r of recs){
+    if(r.length<12)continue;let seq=0;for(let j=7;j>=0;j--)seq=seq*256+r[j];
+    const n=new DataView(r.buffer,r.byteOffset,r.length).getUint32(8,true),q={i:12};
+    for(let i=0;i<n&&q.i<r.length;i++){const t=r[q.i++],kl=vr(r,q),k=r.subarray(q.i,q.i+kl);q.i+=kl;let v=null;
+      if(t==1){const vl=vr(r,q);v=r.subarray(q.i,q.i+vl);q.i+=vl}
+      put(k,seq+i,t,v)}}}
+function mkLog(items,seq){
+  const e=[];items.forEach(([k,v])=>{e.push(new Uint8Array([1,...vi(k.length)]),k,new Uint8Array(vi(v.length)),v)});
+  const hd=new Uint8Array(12),hv=new DataView(hd.buffer);hv.setUint32(0,seq%4294967296,true);hv.setUint32(4,Math.floor(seq/4294967296),true);hv.setUint32(8,items.length,true);
+  const data=cat([hd,...e]),out=[];let bo=0,pos=0,first=true;
+  for(;;){
+    if(32768-bo<7){out.push(new Uint8Array(32768-bo));bo=0}
+    const rem=data.length-pos,l=Math.min(32768-bo-7,rem),last=l==rem,ty=first&&last?1:first?2:last?4:3,ch=data.subarray(pos,pos+l);
+    let c=crc(T32C,[ty]);c=(crc(T32C,ch,c)^0xFFFFFFFF)>>>0;
+    const h7=new Uint8Array(7),dv=new DataView(h7.buffer);
+    dv.setUint32(0,((((c>>>15)|(c<<17))>>>0)+0xa282ead8)>>>0,true);dv.setUint16(4,l,true);h7[6]=ty;
+    out.push(h7,ch);bo=(bo+7+l)%32768;pos+=l;first=false;if(last)break}
+  return cat(out)}
+function kind(k){
+  const n=k.length,pre=String.fromCharCode(...k.subarray(0,Math.min(11,n)));
+  if(pre=='actorprefix')return{g:'Entity (actor)',label:'actor '+hex(k.subarray(11))};
+  if(pre.startsWith('digp'))return null;
+  if(n&&k.every(c=>c>=32&&c<127)){const s=String.fromCharCode(...k);if(s.startsWith('structuretemplate_'))return{g:'Structure',label:s.slice(18)};return{g:(s=='~local_player'||s.startsWith('player_'))?'Pemain':'Dunia',label:s}}
+  if(n==9||n==13||n==14){
+    const dv=new DataView(k.buffer,k.byteOffset,n),t=k[n>=13?12:8];
+    if(t!=49&&t!=50)return null;
+    return{g:t==49?'Block Entity':'Entity (chunk)',label:'Chunk ('+dv.getInt32(0,true)+', '+dv.getInt32(4,true)+') '+(['Overworld','Nether','End'][n>=13?dv.getInt32(8,true):0]||'Dimensi lain')}}
+  return null}
+async function zipOpen(f){
+  const tail=new Uint8Array(await f.slice(Math.max(0,f.size-70000)).arrayBuffer());let e=-1;
+  for(let i=tail.length-22;i>=0;i--)if(tail[i]==0x50&&tail[i+1]==0x4b&&tail[i+2]==5&&tail[i+3]==6){e=i;break}
+  if(e<0)throw Error('Bukan file zip yang valid');
+  const d=new DataView(tail.buffer),cnt=d.getUint16(e+10,true),cs=d.getUint32(e+12,true),co=d.getUint32(e+16,true);
+  if(co==0xffffffff)throw Error('Zip64 belum didukung');
+  const cd=new Uint8Array(await f.slice(co,co+cs).arrayBuffer()),cv=new DataView(cd.buffer),ents=[];let p=0;
+  for(let i=0;i<cnt&&cv.getUint32(p,true)==0x02014b50;i++){
+    const nl=cv.getUint16(p+28,true),xl=cv.getUint16(p+30,true),cl=cv.getUint16(p+32,true);
+    ents.push({name:new TextDecoder().decode(cd.subarray(p+46,p+46+nl)),m:cv.getUint16(p+10,true),sz:cv.getUint32(p+20,true),lo:cv.getUint32(p+42,true),po:p,pl:46+nl+xl+cl});p+=46+nl+xl+cl}
+  return{ents,cd,co,cnt}}
+async function zipRead(f,en){
+  const h=new DataView(await f.slice(en.lo,en.lo+30).arrayBuffer()),o=en.lo+30+h.getUint16(26,true)+h.getUint16(28,true);
+  const raw=new Uint8Array(await f.slice(o,o+en.sz).arrayBuffer());return en.m==0?raw:dec(raw,'deflate-raw')}
+async function openWorld(f){
+  try{
+    toast('Membaca world...');const z=await zipOpen(f);
+    const dbs=z.ents.filter(e=>/(^|\/)db\/[^/]+$/.test(e.name));
+    if(!dbs.length)throw Error('Folder db tidak ditemukan di file ini');
+    const prefix=dbs[0].name.replace(/db\/[^/]+$/,''),kv=new Map();let maxSeq=0,maxNum=0,done=0;
+    const put=(k,seq,type,val)=>{
+      if(seq>maxSeq)maxSeq=seq;const g=kind(k);if(!g)return;
+      const x=hex(k),o=kv.get(x);if(o&&o.seq>=seq)return;
+      kv.set(x,{key:k.slice(),seq,del:type==0,val:type?val.slice():null,g:g.g,label:g.label})};
+    for(const e of dbs){
+      const nm=e.name.split('/').pop(),m=nm.match(/^(\d+)\.(ldb|log|sst)$/)||nm.match(/^MANIFEST-(\d+)$/);if(m)maxNum=Math.max(maxNum,+m[1]);
+      $('#fi').textContent='Membaca database '+(++done)+'/'+dbs.length;
+      if(/\.(ldb|sst)$/.test(nm))await readTable(await zipRead(f,e),put);else if(/\.log$/.test(nm))readLog(await zipRead(f,e),put);
+      await new Promise(r=>setTimeout(r))}
+    for(const[x,e]of[...kv])if(e.del)kv.delete(x);
+    Object.assign(S,{root:null,wk:null,sel:null,q:'',undo:[],orig:null,w:{file:f,z,prefix,kv,maxSeq,maxNum,pending:new Map(),pf:new Map(),lv:(z.ents.find(e=>e.name==prefix+'level.dat')||{}).name,n:kv.size,gopen:new Set(['Pemain','Dunia'])}});
+    render();
+  }catch(e){toast(e.message);render()}}
+function parseAny(b){
+  const r=parse(b,true);if(r.end==b.length){S.multi=false;return r.root}
+  const kids=[];let p=0;
+  while(p<b.length){const x=parse(b.subarray(p),true),c=x.root;c.rn=c.n;c.n='#'+kids.length;kids.push(c);p+=x.end}
+  S.multi=true;return{t:10,n:'',v:kids}}
+function openKey(x){
+  const e=S.w.kv.get(x);
+  try{const root=parseAny(S.w.pending.get(x)||e.val);
+    Object.assign(S,{root,sel:[],open:new Set(['']),lim:{},le:true,comp:'none',hdr:null,fname:e.label,undo:[],q:'',orig:null,wk:x});render()}
+  catch(err){toast('Isi key ini bukan NBT yang valid')}}
+function apply(){
+  if(S.wk=='F'){const body=write(S.root,true),o=new Uint8Array(8+body.length),d=new DataView(o.buffer);d.setUint32(0,S.lvh,true);d.setUint32(4,body.length,true);o.set(body,8);
+    S.w.pf.set(S.w.lv,o);S.root=null;S.wk=null;S.undo=[];S.q='';toast('level.dat ditahan. Tekan Ekspor untuk membuat .mcworld');return render()}
+  const b=S.multi?cat(S.root.v.map(c=>write({...c,n:c.rn||''},true))):write(S.root,true);
+  S.w.pending.set(S.wk,b);S.root=null;S.wk=null;S.undo=[];S.q='';toast('Perubahan ditahan. Tekan Ekspor untuk membuat .mcworld');render()}
+function back(){
+  const go=()=>{close();S.root=null;S.wk=null;S.undo=[];S.q='';render()};
+  if(S.undo.length)sheet('Buang perubahan?',h('p',{},'Perubahan di key ini belum diterapkan.'),[bt('Batal','',close),bt('Buang','bad',go)]);else go()}
+function renderWorld(m){
+  m.append(h('div',{class:'bar'},h('input',{placeholder:'Cari key (mis. player, chunk)',value:S.q,oninput:e=>{S.q=e.target.value;wl()}}),
+    h('button',{class:'btn',onclick:()=>$('#sfile').click()},'Impor structure'),
+    h('button',{class:'btn',onclick:()=>dl(S.w.file,S.w.file.name.replace(/\.mcworld$/i,'')+'_cadangan.mcworld')},'Cadangan')),
+    h('div',{class:'tree',id:'wl'}));wl()}
+function wl(){
+  const w=S.w,q=S.q.toLowerCase(),L=$('#wl');L.replaceChildren();
+  if(w.lv&&(!q||'level.dat'.includes(q)))L.append(h('div',{class:'tr',onclick:openLevel},h('span',{class:'ti',style:'background:'+CL[10]},'{}'),h('span',{class:'tn'},'level.dat'),h('span',{class:'tv'},'pengaturan world'+(w.pf.has(w.lv)?' (diubah)':''))));
+  ['Pemain','Structure','Dunia','Entity (actor)','Block Entity','Entity (chunk)'].forEach(g=>{
+    const its=[...w.kv].filter(([x,e])=>e.g==g&&(!q||e.label.toLowerCase().includes(q)));if(!its.length)return;
+    const open=q||w.gopen.has(g);
+    L.append(h('div',{class:'tr',style:'font-weight:700;background:var(--bg)',onclick:()=>{if(w.gopen.has(g))w.gopen.delete(g);else w.gopen.add(g);wl()}},
+      h('span',{class:'ar'},open?'\u25be':'\u25b8'),g+' ('+its.length+')'));
+    if(!open)return;const lim=S.lim['w'+g]||150;
+    its.slice(0,lim).forEach(([x,e])=>L.append(h('div',{class:'tr',onclick:()=>openKey(x)},
+      h('span',{class:'ti',style:'background:'+CL[10]},'{}'),h('span',{class:'tn'},e.label),
+      h('span',{class:'tv'},Math.max(1,Math.round((w.pending.get(x)||e.val).length/1024))+' KB'+(w.pending.has(x)?' (diubah)':'')),g=='Structure'?h('button',{class:'btn',style:'margin-left:auto;padding:5px 10px',onclick:ev=>{ev.stopPropagation();dl(w.pending.get(x)||e.val,e.label.replace(/[^\w.-]+/g,'_')+'.mcstructure')}},'Unduh'):null)));
+    if(its.length>lim)L.append(h('div',{class:'tr more',onclick:()=>{S.lim['w'+g]=lim+500;wl()}},'... tampilkan lebih banyak ('+(its.length-lim)+' lagi)'))})}
+
+/* ---------- builder item ---------- */
+const ENCH=[['protection',0],['fire_protection',1],['feather_falling',2],['blast_protection',3],['projectile_protection',4],['thorns',5],['respiration',6],['depth_strider',7],['aqua_affinity',8],['sharpness',9],['smite',10],['bane_of_arthropods',11],['knockback',12],['fire_aspect',13],['looting',14],['efficiency',15],['silk_touch',16],['unbreaking',17],['fortune',18],['power',19],['punch',20],['flame',21],['infinity',22],['luck_of_the_sea',23],['lure',24],['frost_walker',25],['mending',26],['binding',27],['vanishing',28],['impaling',29],['riptide',30],['loyalty',31],['channeling',32],['multishot',33],['piercing',34],['quick_charge',35],['soul_speed',36],['swift_sneak',37]];
+const SBK=n=>{const t=(ty,k,v)=>({t:ty,n:k,v});return[t(3,'data',2),t(8,'structureName',n),t(8,'dataField',''),t(1,'animationMode',0),t(5,'animationSeconds',0),t(1,'ignoreEntities',0),t(1,'includePlayers',0),t(5,'integrity',100),t(1,'isPowered',0),t(1,'mirror',0),t(3,'redstoneSaveMode',0),t(1,'removeBlocks',0),t(1,'rotation',0),t(4,'seed',0n),t(1,'showBoundingBox',1),t(3,'xStructureOffset',0),t(3,'yStructureOffset',0),t(3,'zStructureOffset',0),t(3,'xStructureSize',0),t(3,'yStructureSize',0),t(3,'zStructureSize',0)]};
+const ri=(a,b,opt)=>s=>{s=s.trim();if(opt&&s==='')return;if(!/^-?\d+$/.test(s))throw Error('Harus bilangan bulat');const n=+s;if(n<a||n>b)throw Error('Rentang '+a+' sampai '+b)};
+function F(label,el,chk,hint){
+  const er=h('div',{class:'err'}),w=h('div',{},h('label',{},label),el,er,hint?h('div',{class:'hint'},hint):null);
+  w.run=()=>{let m='';try{if(chk)chk(el.value)}catch(e){m=e.message}el.classList.toggle('inv',!!m);er.textContent=m;return!m};el.oninput=w.run;return w}
+function itemSheet(par){
+  const used=new Set(par.v.map(c=>{const s=c.t==10&&c.v.find(x=>x.n=='Slot');return s?s.v:-1}));let fs=0;while(used.has(fs))fs++;
+  const I=(v,ph)=>h('input',{value:String(v),placeholder:ph||''}),A=(ph,r)=>h('textarea',{rows:r||2,placeholder:ph||''});
+  const id=I('','minecraft:diamond_sword atau angka'),cnt=I(1),slot=I(fs),dur=I('','kosong = tidak diatur'),aux=I(''),rep=I('','kosong = tidak diatur'),
+    nm=I('','Nama kustom'),lore=A('Satu baris per Lore',3),cpo=A('contoh: minecraft:stone, minecraft:dirt'),cdt=A('contoh: minecraft:stone'),
+    bst=A('contoh: facing_direction=2, open_bit=true'),bver=I(17959425),sname=h('input',{placeholder:'namespace:nama',list:'dl-st'}),
+    cb=()=>h('input',{type:'checkbox',style:'width:auto'}),unb=cb(),keep=cb(),blk=cb(),
+    lock=h('select',{},h('option',{value:0},'Tidak ada'),h('option',{value:1},'Kunci di slot'),h('option',{value:2},'Kunci di inventory')),
+    pre=h('select',{},h('option',{value:''},'Tidak ada'),h('option',{value:'sb'},'Structure Block (mode Load)'));
+  const sts=S.w?[...S.w.kv.values()].filter(e=>e.g=='Structure').map(e=>e.label):[];
+  const fI=F('Identifier item (atau ID angka)',id,s=>{if(!s.trim())throw Error('Identifier wajib diisi');if(/^\d+$/.test(s.trim()))ri(0,32767)(s)},'Contoh: minecraft:diamond_sword. Block juga pakai identifier-nya, contoh minecraft:stone.');
+  const fC=F('Jumlah (1-127)',cnt,ri(1,127)),fS=F('Slot (0-127)',slot,ri(0,127),'Inventory: 0-8 hotbar, 9-35 tas.'),
+    fD=F('Durabilitas terpakai (tag.Damage)',dur,ri(0,2147483647,true),'Nilai kerusakan, 0 = baru.'),fX=F('Aux / data value (Damage item)',aux,ri(0,32767,true)),fR=F('RepairCost',rep,ri(0,2147483647,true)),
+    fB=F('Block states',bst,s=>{s.split(/[\n,]+/).map(x=>x.trim()).filter(Boolean).forEach(x=>{if(!x.includes('='))throw Error('Format: nama=nilai')})}),
+    fV=F('Versi block',bver,ri(0,2147483647)),
+    fN=F('Nama structure yang di-load',sname,s=>{if(pre.value=='sb'&&!s.trim())throw Error('Nama structure wajib diisi')},'Pilih dari daftar structure di world, atau ketik sendiri.');
+  const fl=[fI,fC,fS,fD,fX,fR,fB,fV,fN],E=[],ebox=h('div',{});
+  const sbox=h('div',{hidden:true},fN);
+  pre.onchange=()=>{const on=pre.value=='sb';sbox.hidden=!on;if(on){if(!id.value.trim())id.value='minecraft:structure_block';blk.checked=true}};
+  function addE(){
+    const sel=h('select',{},ENCH.map(([n,i])=>h('option',{value:i},n+' ('+i+')')),h('option',{value:-1},'ID lain...')),
+      cid=h('input',{placeholder:'ID angka',hidden:true}),lv=h('input',{value:'1',placeholder:'Level',style:'width:100px;flex:none'}),er=h('div',{class:'err'}),o={sel,cid,lv};
+    o.run=()=>{let m='';try{ri(1,32767)(lv.value);if(sel.value=='-1')ri(0,32767)(cid.value)}catch(e){m=e.message}lv.classList.toggle('inv',!!m);er.textContent=m;return!m};
+    sel.onchange=()=>{cid.hidden=sel.value!='-1';o.run()};lv.oninput=cid.oninput=o.run;
+    const row=h('div',{class:'guide'},h('div',{style:'display:flex;gap:6px'},sel,lv,h('button',{class:'btn bad',onclick:()=>{row.remove();E.splice(E.indexOf(o),1)}},'x')),cid,er);
+    E.push(o);ebox.append(row)}
+  const ok=()=>{let g=true;fl.forEach(f=>{if(!f.run())g=false});E.forEach(o=>{if(!o.run())g=false});return g};
+  const lines=s=>s.split(/[\n,]+/).map(x=>x.trim()).filter(Boolean);
+  function build(){
+    const t=(ty,n,v)=>({t:ty,n,v}),K=[],idv=id.value.trim(),tag=[];
+    K.push(t(1,'Count',+cnt.value),/^\d+$/.test(idv)?t(2,'id',+idv):t(8,'Name',idv),t(2,'Damage',+(aux.value||0)),t(1,'WasPickedUp',0),t(1,'Slot',+slot.value));
+    if(dur.value.trim()!=='')tag.push(t(3,'Damage',+dur.value));
+    if(rep.value.trim()!=='')tag.push(t(3,'RepairCost',+rep.value));
+    if(E.length)tag.push({t:9,n:'ench',lt:10,v:E.map(o=>({t:10,v:[t(2,'id',o.sel.value==-1?+o.cid.value:+o.sel.value),t(2,'lvl',+o.lv.value)]}))});
+    const dsp=[],ll=lore.value.split('\n').filter(x=>x!=='');
+    if(nm.value)dsp.push(t(8,'Name',nm.value));
+    if(ll.length)dsp.push({t:9,n:'Lore',lt:8,v:ll.map(x=>({t:8,v:x}))});
+    if(dsp.length)tag.push({t:10,n:'display',v:dsp});
+    if(unb.checked)tag.push(t(1,'Unbreakable',1));
+    if(lock.value!='0')tag.push(t(1,'minecraft:item_lock',+lock.value));
+    if(keep.checked)tag.push(t(1,'minecraft:keep_on_death',1));
+    if(pre.value=='sb')tag.push(...SBK(sname.value.trim()));
+    if(tag.length)K.push({t:10,n:'tag',v:tag});
+    const cp=lines(cpo.value),cd=lines(cdt.value);
+    if(cp.length)K.push({t:9,n:'CanPlaceOn',lt:8,v:cp.map(x=>({t:8,v:x}))});
+    if(cd.length)K.push({t:9,n:'CanDestroy',lt:8,v:cd.map(x=>({t:8,v:x}))});
+    if(blk.checked||pre.value=='sb')K.push({t:10,n:'Block',v:[t(8,'name',idv),{t:10,n:'states',v:lines(bst.value).map(x=>{const i=x.indexOf('='),k=x.slice(0,i).trim(),v=x.slice(i+1).trim();return /^-?\d+$/.test(v)?t(3,k,+v):v=='true'||v=='false'?t(1,k,v=='true'?1:0):t(8,k,v)})},t(3,'version',+bver.value)]});
+    return{t:10,v:K}}
+  const D=(ti,...k)=>h('details',{},h('summary',{},ti),...k),CK=(l,c)=>h('label',{style:'display:flex;gap:8px;align-items:center'},c,l);
+  sheet('Tambah item',h('div',{},h('datalist',{id:'dl-st'},sts.map(x=>h('option',{value:x}))),
+    h('div',{class:'guide'},'Item dimasukkan ke list yang dipilih. Semua isinya masih bisa diedit di tree setelah dibuat.'),
+    fI,fC,fS,
+    D('Enchant (level sampai 32767)',ebox,h('button',{class:'btn',style:'margin-top:8px',onclick:addE},'+ Enchant')),
+    D('Durabilitas dan data',fD,fX,fR,CK('Unbreakable',unb)),
+    D('Nama dan Lore',h('label',{},'Nama kustom'),nm,h('label',{},'Lore'),lore),
+    D('Item component',h('label',{},'Can place on (pisahkan koma)'),cpo,h('label',{},'Can destroy (pisahkan koma)'),cdt,h('label',{},'Item lock'),lock,CK('Keep on death',keep)),
+    D('Block',CK('Item ini adalah block (tambah tag Block)',blk),fB,fV),
+    D('Preset block entity',h('label',{},'Preset'),pre,sbox)),[
+    bt('Batal','',close),
+    bt('Tambah','pri',()=>{if(!ok())return toast('Ada isian yang salah, cek tulisan merah');
+      const node=build();mut(()=>{par.v.push(node);if(!par.lt)par.lt=10;S.open.add(S.sel.join('.'))});close()})])}
+async function openLevel(){
+  const w=S.w;
+  try{const u=w.pf.get(w.lv)||await zipRead(w.file,w.z.ents.find(e=>e.name==w.lv)),root=parse(u.subarray(8),true).root;
+    Object.assign(S,{root,multi:false,sel:[],open:new Set(['']),lim:{},le:true,comp:'none',hdr:null,fname:'level.dat',undo:[],q:'',orig:null,wk:'F',lvh:new DataView(u.buffer,u.byteOffset).getUint32(0,true)});render()}
+  catch(e){toast('level.dat tidak bisa dibaca: '+e.message)}}
+function zipBuild(f,z,adds,drop){
+  const te=new TextEncoder(),parts=[f.slice(0,z.co)],cds=[];let off=z.co,cnt=0;
+  for(const e of z.ents){if(drop.has(e.name))continue;cds.push(z.cd.subarray(e.po,e.po+e.pl));cnt++}
+  for(const a of adds){
+    const nb=te.encode(a.name),d=a.data,c=crcF(T32,d),lh=new Uint8Array(30+nb.length),lv=new DataView(lh.buffer);
+    lv.setUint32(0,0x04034b50,true);lv.setUint16(4,20,true);lv.setUint32(14,c,true);lv.setUint32(18,d.length,true);lv.setUint32(22,d.length,true);lv.setUint16(26,nb.length,true);lh.set(nb,30);
+    const ce=new Uint8Array(46+nb.length),cv=new DataView(ce.buffer);
+    cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);cv.setUint32(16,c,true);cv.setUint32(20,d.length,true);cv.setUint32(24,d.length,true);cv.setUint16(28,nb.length,true);cv.setUint32(42,off,true);ce.set(nb,46);
+    parts.push(lh,d);cds.push(ce);off+=lh.length+d.length;cnt++}
+  const cd=cat(cds),eo=new Uint8Array(22),ev=new DataView(eo.buffer);
+  ev.setUint32(0,0x06054b50,true);ev.setUint16(8,cnt,true);ev.setUint16(10,cnt,true);ev.setUint32(12,cd.length,true);ev.setUint32(16,off,true);
+  return new Blob([...parts,cd,eo])}
+function exportWorld(){
+  const w=S.w;if(!w.pending.size&&!w.pf.size)return toast('Belum ada perubahan untuk diekspor');
+  const adds=[],drop=new Set();
+  if(w.pending.size)adds.push({name:w.prefix+'db/'+String(w.maxNum+1).padStart(6,'0')+'.log',data:mkLog([...w.pending].map(([x,v])=>[w.kv.get(x).key,v]),w.maxSeq+1)});
+  w.pf.forEach((data,name)=>{drop.add(name);adds.push({name,data})});
+  dl(zipBuild(w.file,w.z,adds,drop),w.file.name.replace(/\.mcworld$/i,'')+'_edit.mcworld')}
+async function impStruct(f){
+  try{
+    let u=new Uint8Array(await f.arrayBuffer());if(u[0]==0x1f&&u[1]==0x8b)u=await dec(u,'gzip');
+    const r=parse(u,true);if(r.end!=u.length)throw Error('Bukan file .mcstructure yang valid');
+    const nm=h('input',{value:'mystructure:'+f.name.replace(/\.mcstructure$/i,'').replace(/[^\w-]+/g,'_').toLowerCase()});
+    sheet('Impor structure',h('div',{},h('div',{class:'guide'},'Nama structure di dalam world, format namespace:nama. Dipakai lewat command /structure load.'),h('label',{},'Nama'),nm),[
+      bt('Batal','',close),
+      bt('Impor','pri',()=>{
+        const n=nm.value.trim();if(!/^[a-z0-9_.-]+:[a-z0-9_.\/-]+$/.test(n))return toast('Format nama: namespace:nama (huruf kecil, angka, _ atau -)');
+        const ks=new TextEncoder().encode('structuretemplate_'+n),x=hex(ks),w=S.w;
+        w.kv.set(x,{key:ks,seq:0,del:false,val:u,g:'Structure',label:n});w.pending.set(x,u);w.n=w.kv.size;close();render();
+        toast('Structure ditambahkan. Tekan Ekspor untuk membuat .mcworld')})])
+  }catch(e){toast(e.message)}}
+$('#sfile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f&&S.w)impStruct(f)};
+$('#open').onclick=()=>$('#file').click();
+$('#file').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)openFile(f)};
+$('#undo').onclick=undo;$('#save').onclick=()=>S.w?(S.root?apply():exportWorld()):save();
+$('#b-edit').onclick=editSel;$('#b-item').onclick=()=>{const a=S.sel&&at(S.sel);if(a&&a.n.t==9)itemSheet(a.n)};$('#b-add').onclick=addSel;$('#b-dup').onclick=dupSel;$('#b-del').onclick=delSel;
+render();
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')==0)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>

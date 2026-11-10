@@ -1,0 +1,15 @@
+{
+  "name": "BedrockNBT",
+  "short_name": "BedrockNBT",
+  "description": "Editor NBT dan world Bedrock (.mcworld) untuk HP",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f1311",
+  "theme_color": "#13995c",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml"}
+  ]
+}
